@@ -90,6 +90,13 @@ impl TendermintRPCClient {
         let client = Client::new();
         let fetch_peer_id_url = format!("{}/status", self.url);
 
+        let r = client
+            .get(fetch_peer_id_url.clone())
+            .send()
+            .await?.text().await?;
+        
+        println!("{r:#?}");
+
         let response: PeerIdResponse = client
             .get(fetch_peer_id_url)
             .send()

@@ -25,7 +25,7 @@ async fn main() -> anyhow::Result<()> {
     println!("getting genesis...");
     let genesis = client.fetch_light_block(1, peer_id).await.unwrap();
 
-    let dir = fs::read_dir("needed_headers")?;
+    let dir = fs::read_dir("script/needed_headers")?;
     let mut files = vec![];
     for entry in dir {
         let entry = entry?;
@@ -41,14 +41,15 @@ async fn main() -> anyhow::Result<()> {
     }
     files.sort_by(|a, b| a.parse::<u32>().unwrap().cmp(&b.parse::<u32>().unwrap()));
 
-    let left_off_proof_file = std::fs::File::open("1015226_proof.json").expect("could not open left_off_proof.json");
+    
+    let left_off_proof_file = std::fs::File::open("2341560_proof.json").expect("could not open left_off_proof.json");
     let mut running_proof: SP1ProofWithPublicValues = serde_json::from_reader(left_off_proof_file).expect("could not parse");
 
-    let running_header_file = std::fs::File::open("needed_headers/1015226.json").unwrap();
+    let running_header_file = std::fs::File::open("script/needed_headers/2341560.json").unwrap();
     let mut running_head: Option<LightBlock> = serde_json::from_reader(running_header_file).unwrap();
 
     // header where i got booted off wifi
-    let left_off: String = "1015226".to_string();
+    let left_off: String = "2341560".to_string();
     let start = files.iter().position(|r| *r == left_off).unwrap()+1;
 
     for i in start..files.len() {
@@ -61,9 +62,9 @@ async fn main() -> anyhow::Result<()> {
         stdin.write_vec(genesis.clone().signed_header.header().hash().as_bytes().to_vec());
         let encoded1 = serde_cbor::to_vec(&running_head).expect("failed to serialzie running head");
         stdin.write_vec(encoded1);
-        let next_header_file = std::fs::File::open(format!("needed_headers/{}.json",&files[i])).expect("Could not open");
+        let next_header_file = std::fs::File::open(format!("script/needed_headers/{}.json",&files[i])).expect("Could not open");
         let next_header: Option<LightBlock> = Some(serde_json::from_reader(next_header_file).expect("could not parse"));
-        let encoded2 = serde_cbor::to_vec(&next_header).expect("coudl not serialize");
+        let encoded2 = serde_cbor::to_vec(&next_header).expect("could not serialize");
         stdin.write_vec(encoded2);
         let running_proof_inner = *match running_proof.proof.clone() {
             SP1Proof::Compressed(c) => c,
